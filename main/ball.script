@@ -1,0 +1,90 @@
+local M = {}
+
+function init(self)
+    -- Initialize ball properties
+    self.velocity = vmath.vector3(0, 0, 0)
+    self.acceleration = 1000 -- Adjust this value to change how fast the ball moves
+    self.max_speed = 500 -- Maximum speed the ball can reach
+    self.target_pos = nil
+    self.input_active = false
+    
+    -- Enable input for this game object
+    msg.post(".", "acquire_input_focus")
+    print("Ball initialized at position:", go.get_position())
+end
+
+function final(self)
+    -- Release input focus when the script is finalized
+    msg.post(".", "release_input_focus")
+end
+
+function update(self, dt)
+    -- Get current ball position
+    local pos = go.get_position()
+    
+    if self.target_pos then
+        -- Calculate direction vector from ball to target position
+        local direction = vmath.normalize(self.target_pos - pos)
+        
+        -- Apply acceleration in the direction of the target
+        self.velocity = self.velocity + direction * self.acceleration * dt
+        
+        -- Limit maximum speed
+        local speed = vmath.length(self.velocity)
+        if speed > self.max_speed then
+            self.velocity = vmath.normalize(self.velocity) * self.max_speed
+        end
+        
+        -- Update position
+        go.set_position(pos + self.velocity * dt)
+    end
+end
+
+-- Helper function to convert screen coordinates to world coordinates
+function screen_to_world(x, y)
+    -- Get the render configuration
+    local width = tonumber(sys.get_config("display.width"))
+    local height = tonumber(sys.get_config("display.height"))
+    
+    -- For simple cases, we can just use the screen coordinates directly
+    return vmath.vector3(x, y, 0)
+end
+
+function on_input(self, action_id, action)
+    if action_id == hash("touch") then
+        -- Get the exact position in world coordinates
+        local world_pos = vmath.vector3(action.x, action.y, 0)
+        
+        if action.pressed then
+            -- Debug print initial press
+            print("Touch/Mouse started at: (", action.x, ",", action.y, ")")
+            
+            -- Create a debug marker at the press position
+            factory.create("#marker_factory", world_pos)
+            
+            -- Mark input as active
+            self.input_active = true
+            
+            -- Set initial target position
+            self.target_pos = world_pos
+        elseif action.released then
+            -- Clear input active flag
+            self.input_active = false
+            
+            -- Clear target position when touch/mouse ends
+            self.target_pos = nil
+            
+            print("Touch/Mouse ended")
+        elseif self.input_active then
+            -- Update target position to current mouse/touch position
+            self.target_pos = world_pos
+            
+            -- Occasionally create debug markers to show the path (every 10 frames)
+            if math.random() < 0.05 then
+                factory.create("#marker_factory", world_pos)
+            end
+        end
+    end
+end
+
+return M 

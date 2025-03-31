@@ -1,0 +1,24 @@
+function init(self)
+    -- Set a timer to delete this marker after 2 seconds
+    self.lifetime = 2
+    
+    -- Make the debug marker a different color (red)
+    go.set("#sprite", "tint", vmath.vector4(1.0, 0.3, 0.3, 0.5))
+    
+    -- Make it slightly smaller than the main ball
+    go.animate("#sprite", "scale", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(0.4, 0.4, 1.0), go.EASING_OUTQUAD, 0.3)
+end
+
+function update(self, dt)
+    -- Decrease lifetime
+    self.lifetime = self.lifetime - dt
+    
+    -- Fade out as the lifetime decreases
+    local alpha = self.lifetime / 2 * 0.5  -- Max alpha 0.5
+    go.set("#sprite", "tint.w", alpha)
+    
+    -- Delete the marker when lifetime ends
+    if self.lifetime <= 0 then
+        go.delete()
+    end
+end 
