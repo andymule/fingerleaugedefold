@@ -1,0 +1,2 @@
+prototype: "/main/debug_marker.go"
+load_dynamically: false 
