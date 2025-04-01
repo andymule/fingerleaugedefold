@@ -1,0 +1,44 @@
+function init(self)
+    -- Acquire input focus
+    msg.post(".", "acquire_input_focus")
+    
+    -- Store the original position and scale of the play button for animation
+    local button = gui.get_node("play_button")
+    self.button_pos = gui.get_position(button)
+    self.button_scale = gui.get_scale(button)
+end
+
+function final(self)
+    -- Release input focus
+    msg.post(".", "release_input_focus")
+end
+
+function update(self, dt)
+    -- Add any animations or updates here if needed
+end
+
+function on_message(self, message_id, message, sender)
+    -- Handle messages
+end
+
+function on_input(self, action_id, action)
+    if action_id == hash("touch") and action.pressed then
+        -- Check if the play button was clicked
+        local button = gui.get_node("play_button")
+        if gui.pick_node(button, action.x, action.y) then
+            -- Animate the button when clicked
+            gui.animate(button, "scale", vmath.vector3(0.9, 0.9, 1), go.EASING_OUTQUAD, 0.1, 0, function()
+                gui.animate(button, "scale", self.button_scale, go.EASING_OUTQUAD, 0.1, 0, function()
+                    -- Load the main game collection after button animation
+                    msg.post("menu:/menu#script", "start_game")
+                end)
+            end)
+            return true
+        end
+    end
+    return false
+end
+
+function on_reload(self)
+    -- Handle hot reloading
+end 

@@ -1,0 +1,44 @@
+function init(self)
+    -- Create a proxy for the main game collection
+    self.game_proxy = "#game_proxy"
+    msg.post("#game_proxy", "load")
+    
+    -- Set initial state
+    self.state = "MENU"
+    
+    -- Enable the menu GUI
+    msg.post("#menu", "enable")
+end
+
+function final(self)
+    -- Clean up resources
+end
+
+function update(self, dt)
+    -- Game state updates
+end
+
+function on_message(self, message_id, message, sender)
+    if message_id == hash("start_game") then
+        -- Start transitioning to the game
+        self.state = "TRANSITION_TO_GAME"
+        
+        -- Disable the menu GUI
+        msg.post("#menu", "disable")
+        
+        -- Enable the game collection
+        msg.post(self.game_proxy, "enable")
+        
+        -- Set the game as the active collection
+        msg.post(self.game_proxy, "acquire_input_focus")
+        
+    elseif message_id == hash("proxy_loaded") then
+        -- The game collection is loaded and ready
+        print("Game collection loaded")
+        
+    elseif message_id == hash("proxy_unloaded") then
+        -- The game collection is unloaded
+        print("Game collection unloaded")
+        
+    end
+end 
